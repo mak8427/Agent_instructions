@@ -27,10 +27,11 @@ If requirements are ambiguous, ask before making broad changes.
 
 ## Contributing: Definition of Done
 Before proposing changes:
-1. Run: `pre-commit run --all-files`
-2. Update CHANGELOG.md with a short entry describing what changed (and why).
-3. If design/structure changed, update ARCHITECTURE.md.
-4. In the PR/response, include:
+1. Run: `pre-commit run --all-files` (mandatory; do not respond without running it unless the user explicitly says not to). Do not ask for confirmation to run it.
+2. Run tests (mandatory; do not respond without running them unless the user explicitly says not to).
+3. Update CHANGELOG.md with a short entry describing what changed (and why).
+4. If design/structure changed, update ARCHITECTURE.md.
+5. In the PR/response, include:
    - Summary of changes (1–3 bullets)
    - Commands you ran + results
    - Any follow-ups or risks
