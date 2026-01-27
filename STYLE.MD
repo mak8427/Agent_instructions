@@ -175,38 +175,60 @@ Mutating globals makes understanding flow harder.
 Instead, pass parameters and return results explicitly.
 
 ---
-## 9)  avoid flags whe running a script
+## 10)  avoid flags whe running a script
 Prefer creating config.yml files  than using flags when running scripts exept specified.
 
 ---
 
+---
+## 11)  ALWAYS include docstrings and doctests
+ And if necessary, add tests in the tests folder , for more compehensive and end to end tests.
+
+---
 
 ## Example Putting It All Together
 
 Below is a small example that adheres to all these principles.
 
 ```python
+from __future__ import annotations
+
 from pathlib import Path
 
+
 def load_words(file_path: str) -> list[str]:
-    """Load words from the given file.
+    """Load words from the given file, one per line.
+
+    Lines are stripped and lowercased.
 
     Args:
         file_path (str): The path to the word file.
 
     Returns:
         list[str]: A list of cleaned words.
+
+    Raises:
+        FileNotFoundError: If file_path does not exist or is not a file.
+
+    Examples:
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> with tempfile.TemporaryDirectory() as d:
+        ...     p = Path(d) / "words.txt"
+        ...     _ = p.write_text(" Hello\\nWORLD\\n\\n  test  \\n")
+        ...     load_words(str(p))
+        ['hello', 'world', '', 'test']
     """
     path = Path(file_path)
     if not path.is_file():
         raise FileNotFoundError(f"File not found: {file_path}")
 
+    # splitlines() preserves empty lines as "" entries.
     return [line.strip().lower() for line in path.read_text().splitlines()]
 
-def filter_valid_words(
-    words: list[str], min_length: int = 3
-) -> list[str]:
-    """Return only the words with sufficient length.
+
+def filter_valid_words(words: list[str], min_length: int = 3) -> list[str]:
+    """Return only the words with length >= min_length.
 
     Args:
         words (list[str]): Words to filter.
@@ -214,16 +236,49 @@ def filter_valid_words(
 
     Returns:
         list[str]: Words of length >= min_length.
+
+    Examples:
+        >>> filter_valid_words(["a", "bee", "", "tree", "hi"], min_length=3)
+        ['bee', 'tree']
+        >>> filter_valid_words(["cat", "dog"], min_length=1)
+        ['cat', 'dog']
     """
     return [w for w in words if len(w) >= min_length]
 
+
 def unique_sorted(words: list[str]) -> list[str]:
-    """Return words unique and sorted alphabetically."""
+    """Return words unique and sorted alphabetically.
+
+    Examples:
+        >>> unique_sorted(["b", "a", "b", "c"])
+        ['a', 'b', 'c']
+        >>> unique_sorted([])
+        []
+    """
     return sorted(set(words))
 
-def process_word_list(file_path: str) -> list[str]:
-    """Load, filter, and sort the word list."""
+
+def process_word_list(file_path: str, min_length: int = 3) -> list[str]:
+    """Load, filter, unique, and sort a word list.
+
+    Args:
+        file_path (str): Path to newline-separated words.
+        min_length (int): Minimum allowed word length.
+
+    Returns:
+        list[str]: Unique, sorted words of length >= min_length.
+
+    Examples:
+        >>> import tempfile
+        >>> from pathlib import Path
+        >>> with tempfile.TemporaryDirectory() as d:
+        ...     p = Path(d) / "words.txt"
+        ...     _ = p.write_text("Banana\\napple\\nApple\\nkiwi\\n")
+        ...     process_word_list(str(p), min_length=5)
+        ['apple', 'banana']
+    """
     words = load_words(file_path)
-    long_words = filter_valid_words(words)
+    long_words = filter_valid_words(words, min_length=min_length)
     return unique_sorted(long_words)
+
 ```
