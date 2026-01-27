@@ -26,15 +26,20 @@ If requirements are ambiguous, ask before making broad changes.
 - [If you have any other checks, list them here exactly, e.g. markdownlint, link checker, docs build]
 
 ## Contributing: Definition of Done
-Before proposing changes:
+WARNING THE FOLLOWING IS MANDATORY YOU MUST FOLLOW THESE STEPS BEFORE COMING BACK TO THE USER:
+@@@@@@
 1. Run: `pre-commit run --all-files` (mandatory; do not respond without running it unless the user explicitly says not to). Do not ask for confirmation to run it.
-2. Run tests (mandatory; do not respond without running them unless the user explicitly says not to).
-3. Update CHANGELOG.md with a short entry describing what changed (and why).
-4. If design/structure changed, update ARCHITECTURE.md.
-5. In the PR/response, include:
+2. If you create new files, add them to git (e.g., `git add <file>`).
+3. Run 'pytest --doctest-modules ' and other tests if you have them; do not respond without running them unless the user explicitly says not to).
+4. Update CHANGELOG.md with a short entry describing what changed (and why).
+5. If design/structure changed, update ARCHITECTURE.md.
+6. In the PR/response, include:
    - Summary of changes (1–3 bullets)
    - Commands you ran + results
    - Any follow-ups or risks
+@@@@@@
+
+
 
 ## Project map
 - `/` — top-level docs and configs

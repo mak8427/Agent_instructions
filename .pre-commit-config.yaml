@@ -33,3 +33,17 @@ repos:
     hooks:
       - id: flake8
         files: \.pyi?$
+
+  - repo: local
+    hooks:
+      - id: doctest-ratio
+        name: doctest ratio (>= 80%)
+        entry: python scripts/check_doctest_ratio.py --min 0.8
+        language: system
+        pass_filenames: false
+        files: \.py$
+      - id: file-length
+        name: file length limits (warn > 1000, fail > 2000)
+        entry: python scripts/check_file_length.py
+        language: system
+        pass_filenames: false
