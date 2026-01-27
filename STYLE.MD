@@ -175,6 +175,11 @@ Mutating globals makes understanding flow harder.
 Instead, pass parameters and return results explicitly.
 
 ---
+## 9)  avoid flags whe running a script
+Prefer creating config.yml files  than using flags when running scripts exept specified.
+
+---
+
 
 ## Example Putting It All Together
 
