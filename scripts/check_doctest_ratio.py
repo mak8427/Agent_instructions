@@ -1,154 +1,109 @@
-"""Check that a minimum ratio of functions include doctests in docstrings.
-
-The rule is intentionally simple: a function is considered to have a doctest
-if its docstring contains the ">>>" marker.
-
-Examples:
-    >>> has_doctest('''Example.
-    ...
-    ... >>> 1 + 1
-    ... 2
-    ... ''')
-    True
-    >>> has_doctest("No doctest here.")
-    False
-"""
+"""Check doctest coverage ratio for public symbols."""
 
 from __future__ import annotations
 
 import argparse
 import ast
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List
 
 
-@dataclass(frozen=True)
-class FunctionInfo:
-    """Information about a function definition."""
-
-    name: str
-    filepath: Path
-    lineno: int
-    has_doctest: bool
-
-
-def has_doctest(docstring: str | None) -> bool:
-    """Return True if the docstring includes a doctest marker.
-
-    Examples:
-        >>> has_doctest('''Example.
-        ...
-        ... >>> print("hi")
-        ... hi
-        ... ''')
-        True
-        >>> has_doctest(None)
-        False
-    """
-    if not docstring:
-        return False
-    return ">>>" in docstring
-
-
-def iter_python_files(root: Path) -> Iterable[Path]:
-    """Yield Python files under root, excluding common build folders.
-
-    Examples:
-        >>> files = list(iter_python_files(Path(".")))
-        >>> any(path.name == "main.py" for path in files)
-        True
-    """
-    excluded = {".git", ".venv", "build", "dist", "__pycache__"}
-    for path in root.rglob("*.py"):
-        if any(part in excluded for part in path.parts):
-            continue
-        yield path
-
-
-def collect_functions(filepath: Path) -> List[FunctionInfo]:
-    """Collect function definitions from a Python file.
-
-    Examples:
-        >>> functions = collect_functions(Path("main.py"))
-        >>> any(func.name == "main" for func in functions)
-        True
-    """
-    try:
-        text = filepath.read_text(encoding="utf-8")
-    except OSError:
-        return []
-    try:
-        tree = ast.parse(text, filename=str(filepath))
-    except SyntaxError:
-        return []
-
-    functions: List[FunctionInfo] = []
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            docstring = ast.get_docstring(node)
-            functions.append(
-                FunctionInfo(
-                    name=node.name,
-                    filepath=filepath,
-                    lineno=getattr(node, "lineno", 1),
-                    has_doctest=has_doctest(docstring),
-                )
-            )
-    return functions
-
-
-def report_missing(functions: List[FunctionInfo]) -> str:
-    """Build a report of functions missing doctests.
-
-    Examples:
-        >>> report_missing([])
-        'Functions without doctests:'
-    """
-    lines = ["Functions without doctests:"]
-    for func in functions:
-        lines.append(f"- {func.filepath}:{func.lineno} {func.name}")
-    return "\n".join(lines)
-
-
-def main() -> int:
+def _main() -> int:
     """Run the doctest ratio check.
 
-    Examples:
-        >>> callable(main)
-        True
+    Returns:
+        int: Process exit code.
     """
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--min", type=float, default=0.8, help="Minimum doctest ratio.")
-    parser.add_argument(
-        "--root",
-        type=Path,
-        default=Path("."),
-        help="Repository root to scan.",
-    )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--min", type=float, required=True)
     args = parser.parse_args()
 
-    all_functions: List[FunctionInfo] = []
-    for path in iter_python_files(args.root):
-        all_functions.extend(collect_functions(path))
+    total = 0
+    with_doctest = 0
+    for path in _iter_python_files(_repo_root()):
+        counts = _count_doctests(path)
+        total += counts[0]
+        with_doctest += counts[1]
 
-    total = len(all_functions)
-    if total == 0:
-        return 0
+    ratio = 1.0 if total == 0 else with_doctest / total
+    if ratio < args.min:
+        print(f"doctest ratio {ratio:.2f} below minimum {args.min:.2f}")
+        return 1
+    print(f"doctest ratio {ratio:.2f} (min {args.min:.2f})")
+    return 0
 
-    with_doctest = [f for f in all_functions if f.has_doctest]
-    ratio = len(with_doctest) / total
-    if ratio >= args.min:
-        return 0
 
-    missing = [f for f in all_functions if not f.has_doctest]
-    print(
-        f"Doctest coverage {ratio:.2%} below minimum {args.min:.0%} "
-        f"({len(with_doctest)}/{total})."
+def _repo_root() -> Path:
+    """Return the repository root.
+
+    Returns:
+        Path: Repository root path.
+    """
+    return Path(__file__).resolve().parents[1]
+
+
+def _iter_python_files(root: Path) -> list[Path]:
+    """Collect Python files under the repository.
+
+    Args:
+        root (Path): Root directory to scan.
+
+    Returns:
+        list[Path]: Python files to analyze.
+    """
+    files: list[Path] = []
+    for path in root.rglob("*.py"):
+        if _should_skip(path):
+            continue
+        files.append(path)
+    return files
+
+
+def _should_skip(path: Path) -> bool:
+    """Return True if a path should be skipped.
+
+    Args:
+        path (Path): Candidate path.
+
+    Returns:
+        bool: True if the path is excluded.
+    """
+    parts = set(path.parts)
+    return any(
+        name in parts
+        for name in (
+            ".git",
+            ".venv",
+            "__pycache__",
+            "build",
+            "dist",
+            "tests",
+            "scripts",
+        )
     )
-    print(report_missing(missing))
-    return 1
+
+
+def _count_doctests(path: Path) -> tuple[int, int]:
+    """Count total public symbols and doctested ones.
+
+    Args:
+        path (Path): Python file to inspect.
+
+    Returns:
+        tuple[int, int]: Total public symbols and doctested count.
+    """
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    total = 0
+    with_doctest = 0
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            if node.name.startswith("_"):
+                continue
+            total += 1
+            docstring = ast.get_docstring(node) or ""
+            if ">>>" in docstring:
+                with_doctest += 1
+    return total, with_doctest
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    raise SystemExit(_main())

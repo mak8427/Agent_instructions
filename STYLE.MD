@@ -280,5 +280,4 @@ def process_word_list(file_path: str, min_length: int = 3) -> list[str]:
     words = load_words(file_path)
     long_words = filter_valid_words(words, min_length=min_length)
     return unique_sorted(long_words)
-
 ```

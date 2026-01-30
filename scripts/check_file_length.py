@@ -30,6 +30,9 @@ class FileLength:
 def is_warning(lines: int) -> bool:
     """Return True if line count triggers a warning.
 
+    Args:
+        lines (int): Line count to check.
+
     Examples:
         >>> is_warning(1001)
         True
@@ -41,6 +44,9 @@ def is_warning(lines: int) -> bool:
 
 def is_too_long(lines: int) -> bool:
     """Return True if line count exceeds the hard limit.
+
+    Args:
+        lines (int): Line count to check.
 
     Examples:
         >>> is_too_long(2000)
@@ -54,8 +60,16 @@ def is_too_long(lines: int) -> bool:
 def iter_repo_files(root: Path) -> Iterable[Path]:
     """Yield repository files, excluding common build artifacts.
 
+    Args:
+        root (Path): Repository root to scan.
+
     Examples:
-        >>> any(path.name == "main.py" for path in iter_repo_files(Path(".")))
+        >>> import tempfile
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     root = Path(tmp)
+        ...     sample = root / "sample.txt"
+        ...     _ = sample.write_text("hi")
+        ...     sample in list(iter_repo_files(root))
         True
     """
     excluded = {".git", ".venv", "build", "dist", "__pycache__"}
@@ -70,9 +84,16 @@ def iter_repo_files(root: Path) -> Iterable[Path]:
 def count_lines(path: Path) -> int:
     """Count lines in a text file, returning 0 on read errors.
 
+    Args:
+        path (Path): File to read.
+
     Examples:
-        >>> count_lines(Path("main.py")) > 0
-        True
+        >>> import tempfile
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     sample = Path(tmp) / "sample.txt"
+        ...     _ = sample.write_text("a\\n")
+        ...     count_lines(sample)
+        2
     """
     try:
         return path.read_text(encoding="utf-8").count("\n") + 1
@@ -83,9 +104,17 @@ def count_lines(path: Path) -> int:
 def collect_lengths(root: Path) -> List[FileLength]:
     """Collect line counts for repo files.
 
+    Args:
+        root (Path): Repository root to scan.
+
     Examples:
-        >>> lengths = collect_lengths(Path("."))
-        >>> any(entry.path.name == "main.py" for entry in lengths)
+        >>> import tempfile
+        >>> with tempfile.TemporaryDirectory() as tmp:
+        ...     root = Path(tmp)
+        ...     sample = root / "sample.py"
+        ...     _ = sample.write_text("x\\n")
+        ...     lengths = collect_lengths(root)
+        ...     any(entry.path == sample for entry in lengths)
         True
     """
     results: List[FileLength] = []
@@ -97,6 +126,9 @@ def collect_lengths(root: Path) -> List[FileLength]:
 def format_warning(file_len: FileLength) -> str:
     """Format a warning line.
 
+    Args:
+        file_len (FileLength): File length metadata.
+
     Examples:
         >>> format_warning(FileLength(Path("x.py"), 1001))
         'WARN: x.py has 1001 lines'
@@ -106,6 +138,9 @@ def format_warning(file_len: FileLength) -> str:
 
 def format_error(file_len: FileLength) -> str:
     """Format an error line.
+
+    Args:
+        file_len (FileLength): File length metadata.
 
     Examples:
         >>> format_error(FileLength(Path("x.py"), 2001))
