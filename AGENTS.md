@@ -16,7 +16,7 @@ Before implementing:
 - State your assumptions explicitly. If uncertain, ask.
 - If multiple interpretations exist, present them - don't pick silently.
 - If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+- If something is unclear and affects the outcome or risk, stop. Name what's confusing. Ask.
 
 ### 2. Simplicity First
 
@@ -68,17 +68,20 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## Quick start (commands)
 - Install hooks: `pre-commit install`
 - Run all checks: `pre-commit run --all-files`
-- [If you have any other checks, list them here exactly, e.g. markdownlint, link checker, docs build]
+- Run doctests: `pytest --doctest-modules`
 
 ## Contributing: Definition of Done
-WARNING THE FOLLOWING IS MANDATORY YOU MUST FOLLOW THESE STEPS BEFORE COMING BACK TO THE USER:
+WARNING THE FOLLOWING IS MANDATORY FOR CODE OR DOCUMENTATION CHANGES. YOU MUST FOLLOW THESE STEPS BEFORE REPORTING COMPLETION TO THE USER:
 @@@@@@
 1. Run: `pre-commit run --all-files` (mandatory; do not respond without running it unless the user explicitly says not to). Do not ask for confirmation to run it.
 2. If you create new files, add them to git (e.g., `git add <file>`).
-3. Run 'pytest --doctest-modules ' and other tests if you have them; do not respond without running them unless the user explicitly says not to.
+3. Run `pytest --doctest-modules` and other project-specific tests if present; do not respond without running them unless the user explicitly says not to.
 4. Update docs/CHANGELOG.md with a short entry describing what changed (and why).
+   Do not use an `Unreleased` section. Put each change under a version heading:
+   use `0.0.1` for the initial change set, then after a commit continue with
+   `0.1.x` patch versions.
 5. If design/structure changed, update docs/ARCHITECTURE.md.
-6. Check if the diff allign with the style rules in docs/STYLE.MD;
+6. Check whether the diff aligns with the style rules in docs/STYLE.MD.
 7. In the PR/response, include:
    - Summary of changes (1–3 bullets)
    - Commands you ran + results
@@ -89,5 +92,4 @@ WARNING THE FOLLOWING IS MANDATORY YOU MUST FOLLOW THESE STEPS BEFORE COMING BAC
 - `/` — runnable entry points, repository-level instructions, and agent memory
 - `/configs` — shipped YAML profiles for example, local, and HPC runs
 - `/docs` — architecture notes, changelog, model notes, and writing/style docs
-- `[templates/ etc]` — what belongs there
--  `[test/ etc]`  — e2e test files or others
+- `/scripts` — repository quality-check helpers
