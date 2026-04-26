@@ -1,20 +1,5 @@
 # AGENTS.md
 
-## Introduction
-This repository contains a config-driven DINOv3 semantic-segmentation pipeline, its training/inference utilities, and the supporting documentation and YAML profiles used to run and reproduce experiments.
-
-## Purpose and scope
-- Repository purpose: This repo documents and ships the code, configs, and workflow notes for running DINOv3-based segmentation experiments and related dataset-label utilities.
-- Allowed changes:
-  - Edit Markdown docs and configuration files.
-  - Add new docs in the appropriate folder (see “Project map”).
-- Not allowed (unless explicitly requested):
-  - Large refactors/restructures (moving many files, renaming sections globally).
-  - Reformatting entire documents “for style” unless the task requests it.
-  - Renaming files (case-sensitive) without a clear reason and updated references.
-
-If requirements are ambiguous, ask before making broad changes.
-
 ## Important files (read before changing behavior/structure)
 - docs/MEMORY.md — durable repository context for future agent tasks
 - docs/ARCHITECTURE.md — overall design and repo structure
